@@ -1,0 +1,81 @@
+// PRISM 4.7
+// Perda do SARP e distância percorrida
+// Autor Richard Siqueira Miranda
+
+mdp // MDP
+
+const double ihp; // interação humana Ponderada
+const double r; // risco
+
+//definição das distâncias
+
+
+const int aa1 = 28; const int a1b = 12; 
+const int a2a1 = 10; const int a2a3 = 15;
+const int a2s = 12; const int a3a2 = 20; 
+const int a3s = 25; const int a3a4 = 18;
+const int a4a3 = 14; const int a4s = 22; 
+const int a1a2 = 12; const int as = 18;
+const int aa4 = 35; const int aa3 = 29;
+const int aa2 = 32; const int a2b = 14; 
+const int a3b = 15; const int a4b = 12;
+const int cihp = 43;
+
+module risco
+
+cs:[0..10000] init 0;
+cb:[0..10000] init 0;
+ts:[0..1000000] init 0;
+tb:[0..1000000] init 0;
+
+a:[0..1] init 1; //posição inicial
+t1:[0..1] init 0;
+t2:[0..1] init 0;
+t3:[0..1] init 0; 
+t4:[0..1] init 0; 
+b:[0..1] init 0;
+si:[0..1] init 0;
+v:[0..1000] init 0;
+d:[0..1000] init 0;
+
+//Posição A
+[UAV] a=1  & v<10000 -> r:(si'=1)&(a'=0)&(d'=d+as)  
+			+ (1-r)/5:(t1'=1)&(a'=0)&(d'=d+aa1) 
+			+ (1-r)/5:(t2'=1)&(a'=0)&(d'=d+aa2) 
+			+ (1-r)/5:(t2'=1)&(a'=0)&(d'=d+aa2) 
+			+ (1-r)/5:(t3'=1)&(a'=0)&(d'=d+aa3) 
+			+ (1-r)/5:(t4'=1)&(a'=0)&(d'=d+aa4); 
+
+
+// Posição A1
+[UAV] t1=1 & v<10000 -> r:(t2'=1)&(t1'=0)&(d'=d+a1a2) 
+			+ (1-r):(b'=1)&(t1'=0)&(d'=d+a1b);
+
+// Posição A2
+[UAV] t2=1 & v<10000 -> r:(si'=1)&(t2'=0)&(d'=d+a2s)
+			+ (1-r)/4:(t1'=1)&(t2'=0)&(d'=d+a2a1) 
+			+ (1-r)/4:(t3'=1)&(t2'=0)&(d'=d+a2a3) 
+			+ (1-r)/4:(b'=1)&(t2'=0)&(d'=d+a2b) 
+			+ (1-r)/4:(b'=1)&(t2'=0)&(d'=d+a2b);
+
+// Posição A3
+[UAV] t3=1 & v<10000 -> r:(si'=1)&(t3'=0)&(d'=d+a3s)   
+			+ (1-r)/4:(t2'=1)&(t3'=0)&(d'=d+a3a2) 
+			+ (1-r)/4:(t4'=1)&(t3'=0)&(d'=d+a3a4) 
+			+ (1-r)/4:(b'=1)&(t3'=0)&(d'=d+a3b) 
+			+ (1-r)/4:(b'=1)&(t3'=0)&(d'=d+a3b);
+
+// Posição A4
+[UAV] t4=1 & v<10000 -> r:(si'=1)&(a'=0)&(d'=d+a4s)    
+			+ (1-r)/3:(t3'=1)&(t4'=0)&(d'=d+a4a3) 
+			+ (1-r)/3:(b'=1)&(t4'=0)&(d'=d+a4b)  
+			+ (1-r)/3:(b'=1)&(t4'=0)&(d'=d+a4b);
+
+// Posição Sink
+[UAV] si=1 & v<10000 -> ihp:(si'=0)&(a'=1)&(d'=d+cihp)
+			+ (1-ihp):(a'=1)&(si'=0)&(v'=v+1)&(cs'=cs+1)&(ts'=ts+d)&(d'=0);
+
+// Posição Chegada
+[UAV] b=1  & v<10000 -> (a'=1)&(b'=0)&(v'=v+1)&(cb'=cb+1)&(tb'=tb+d)&(d'=0);
+
+endmodule
